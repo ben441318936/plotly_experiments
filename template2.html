@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />   <!--It is necessary to use the UTF-8 encoding with plotly graphics to get e.g. negative signs to render correctly -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<script src="plotly-2.34.0.min.js" charset="utf-8"></script>
+</head>
+
+<body>
+<h1>Here's a Plotly graph!</h1>
+
+<div id="graph">
+    <script>
+        var myJson = '{{fig}}';
+        var figure = JSON.parse(myJson);
+
+        var myPlot = document.getElementById("graph");
+
+        Plotly.newPlot("graph", figure.data, figure.layout);
+
+        console.log(myPlot);
+
+        console.log(myPlot.data.length);
+
+        const trace_status = Array(myPlot.data.length).fill(true);
+
+        console.log("Trace status: ", trace_status);
+
+        myPlot.on("plotly_restyle", function(update){
+            console.log("Received: ", update)
+        });
+
+        myPlot.on("plotly_buttonclicked", function(data){
+            console.log("Received: ", data)
+            data.button.args.forEach(function(data){
+                trace_status[data] = !trace_status[data];
+            });
+            // for (let i = 0; i < data.button.args.length, i++){
+            //     trace_status[]
+            // }
+            console.log("Trace status: ", trace_status);
+        });
+
+    </script>
+</div>
+
+
+</body>
+</html>
