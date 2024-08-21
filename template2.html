@@ -18,28 +18,128 @@
 
         Plotly.newPlot("graph", figure.data, figure.layout);
 
+        myPlot.on("plotly_restyle", function(data) {
+            console.log("Restyle");
+        })
+
+        myPlot.on("plotly_relayout", function(data) {
+            console.log("Relayout");
+        })
+
+        myPlot.on("plotly_update", function(data) {
+            console.log("Update");
+        })
+
         console.log(myPlot);
 
         console.log(myPlot.data.length);
 
         const trace_status = Array(myPlot.data.length).fill(true);
 
-        console.log("Trace status: ", trace_status);
+        function handleSingleLegendClick(data) {
+            console.log("Handling single legend click");
+        }
 
-        myPlot.on("plotly_restyle", function(update){
-            console.log("Received: ", update)
+        function handleDoubleLegendClick(data) {
+            console.log("Handling double legend click");
+        }
+
+        var LAST_LEGEND_CLICK = null;
+        var sawDoubleLegendClick = false;
+
+        myPlot.on("plotly_legendclick", function(data){
+            console.log("Legend clicked");
+            // console.log("Received: ", data);
+
+            var CLICK_TIME = (new Date()).getTime();
+  
+            if(CLICK_TIME - LAST_LEGEND_CLICK < 300) {
+                console.log('double click');
+                sawDoubleLegendClick = true;
+                handleDoubleLegendClick(data);
+            } else {
+                LAST_LEGEND_CLICK = CLICK_TIME;
+                console.log('single click');
+                setTimeout(function(data){
+                    if (!sawDoubleLegendClick) {
+                        handleSingleLegendClick(data);
+                    }
+                    else {
+                        sawDoubleLegendClick = false;
+                    }
+                }, 300);
+            }
+            
+            // Overrides default behavior
+            return false;
         });
+
+        myPlot.on("plotly_legenddoubleclick", function(data){
+            // Just to override the default behavior
+            return false;
+        });
+
+        function handleSingleButtonClick(data) {
+            console.log("Handling single buton click");
+            // console.log(myPlot);
+            // console.log(data);
+            // console.log(this);
+            let menus = myPlot.layout.updatemenus;
+            // console.log(menus);
+            for (let i = 0; i < menus.length; i++) {
+                if (data.button.label == menus[i].buttons[0].label) {
+                    if (!("active" in menus[i]) || menus[i].active == 0) {
+                        menus[i].active = -1;
+                        console.log("Setting inactive");
+                    }
+                    else {
+                        menus[i].active = 0;
+                        console.log("Setting active");
+                    }
+                    break;
+                }
+            }
+            let update = {
+                updatemenus: menus
+            }
+            Plotly.relayout(graph, update);
+        }
+
+        function handleDoubleButtonClick(data) {
+            console.log("Handling double buton click");
+            // return data
+        }
+
+        var LAST_BUTTON_CLICK = null;
+        var sawDoubleButtonClick = false;
+
+        function handleSingleWait(data) {
+            if (!sawDoubleButtonClick) {
+                handleSingleButtonClick(data);
+            }
+            else {
+                sawDoubleButtonClick = false;
+            }
+        }
 
         myPlot.on("plotly_buttonclicked", function(data){
-            console.log("Received: ", data)
-            data.button.args.forEach(function(data){
-                trace_status[data] = !trace_status[data];
-            });
-            // for (let i = 0; i < data.button.args.length, i++){
-            //     trace_status[]
-            // }
-            console.log("Trace status: ", trace_status);
+            console.log("Button clicked");
+            // console.log("Received: ", data);
+
+            var CLICK_TIME = (new Date()).getTime();
+  
+            if(CLICK_TIME - LAST_BUTTON_CLICK < 300) {
+                console.log('double click');
+                sawDoubleButtonClick = true;
+                handleDoubleButtonClick(data);
+            } else {
+                LAST_BUTTON_CLICK = CLICK_TIME;
+                console.log('single click');
+                setTimeout(handleSingleWait(data), 300);
+            }
         });
+
+        
 
     </script>
 </div>
